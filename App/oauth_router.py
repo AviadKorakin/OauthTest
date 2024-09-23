@@ -28,11 +28,17 @@ def get_oauth_router():
 
     @oauth_router.get("/auth")
     async def auth(request: Request):
-        # Get the access token from the callback request
+        code = request.query_params.get('code')
+        state = request.query_params.get('state')
+
+        if not code or not state:
+            raise HTTPException(status_code=400, detail="Missing code or state in the callback")
+
         try:
             token = await oauth.github.authorize_access_token(request)
             user_info = await oauth.github.get('user', token=token)
         except Exception as e:
+            print(f"Error during GitHub OAuth callback: {e}")
             raise HTTPException(status_code=400, detail="Authorization failed")
 
         # Return some details (e.g., GitHub username)
