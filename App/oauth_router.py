@@ -27,7 +27,6 @@ def get_oauth_router():
         return await oauth.github.authorize_redirect(request, redirect_uri)
 
     @oauth_router.get("/auth")
-
     async def auth(request: Request):
         # Log the request's query parameters to check the code and state
         code = request.query_params.get('code')
@@ -45,15 +44,16 @@ def get_oauth_router():
             if 'access_token' not in token:
                 raise HTTPException(status_code=400, detail="Failed to retrieve access token")
 
-            # Explicitly specify the GitHub API URL to fetch user info
-            user_info = await oauth.github.get('https://api.github.com/user', token=token)
+            # Fetch user information from GitHub API
+            response = await oauth.github.get('https://api.github.com/user', token=token)
+            user_info = await response.json()  # Extract the JSON data
             print(f"GitHub User Info: {user_info}")
 
         except Exception as e:
             print(f"Error during GitHub OAuth callback: {e}")
             raise HTTPException(status_code=400, detail=f"Authorization failed: {str(e)}")
 
-        # Return some details (e.g., GitHub username)
+        # Return the access token and user info as JSON
         return {"access_token": token['access_token'], "user_info": user_info}
 
     return oauth_router
