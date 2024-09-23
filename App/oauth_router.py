@@ -27,6 +27,7 @@ def get_oauth_router():
         return await oauth.github.authorize_redirect(request, redirect_uri)
 
     @oauth_router.get("/auth")
+    @oauth_router.get("/auth")
     async def auth(request: Request):
         # Log the request's query parameters to check the code and state
         code = request.query_params.get('code')
@@ -46,8 +47,21 @@ def get_oauth_router():
 
             # Fetch user information from GitHub API
             response = await oauth.github.get('https://api.github.com/user', token=token)
-            user_info = response.json()  # Extract JSON data from the httpx.Response object
+            user_info = response.json()
             print(f"GitHub User Info: {user_info}")
+
+            # Fetch user emails explicitly
+            email_response = await oauth.github.get('https://api.github.com/user/emails', token=token)
+            emails = email_response.json()
+
+            # Find the primary email (may be private)
+            primary_email = next((email['email'] for email in emails if email['primary']), None)
+            print(f"Primary email: {primary_email}")
+
+            if primary_email:
+                user_info['email'] = primary_email
+            else:
+                user_info['email'] = None
 
         except Exception as e:
             print(f"Error during GitHub OAuth callback: {e}")
