@@ -1,0 +1,6 @@
+fastapi~=0.115.0
+uvicorn
+authlib~=1.3.2
+python-dotenv~=1.0.1
+
+starlette~=0.38.6
