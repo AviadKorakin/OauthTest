@@ -30,7 +30,11 @@ def get_oauth_router():
     async def auth(request: Request):
         code = request.query_params.get('code')
         state = request.query_params.get('state')
+        redirect_uri = os.getenv('GITHUB_REDIRECT_URI')
+        print(f"Redirect URI: {redirect_uri}")
 
+        if not redirect_uri.startswith('http'):
+            raise HTTPException(status_code=400, detail="Invalid redirect URI format")
         if not code or not state:
             raise HTTPException(status_code=400, detail="Missing code or state in the callback")
 
