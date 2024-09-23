@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Request, HTTPException
 from authlib.integrations.starlette_client import OAuth
-from starlette.config import Config
 import os
 
+
 def get_oauth_router():
-    # Load environment variables
+    # Initialize OAuth with proper config
     oauth = OAuth()
 
     # Register GitHub OAuth
@@ -28,24 +28,30 @@ def get_oauth_router():
 
     @oauth_router.get("/auth")
     async def auth(request: Request):
+        # Log the request's query parameters to check the code and state
         code = request.query_params.get('code')
         state = request.query_params.get('state')
-        redirect_uri = os.getenv('GITHUB_REDIRECT_URI')
-        print(f"Redirect URI: {redirect_uri}")
+        print(f"Received code: {code}, state: {state}")
 
-        if not redirect_uri.startswith('http'):
-            raise HTTPException(status_code=400, detail="Invalid redirect URI format")
         if not code or not state:
             raise HTTPException(status_code=400, detail="Missing code or state in the callback")
 
         try:
+            # Exchange authorization code for access token
             token = await oauth.github.authorize_access_token(request)
+            print(f"Access token response: {token}")
+
+            if 'access_token' not in token:
+                raise HTTPException(status_code=400, detail="Failed to retrieve access token")
+
+            # Fetch user information with the access token
             user_info = await oauth.github.get('user', token=token)
+            print(f"GitHub User Info: {user_info}")
         except Exception as e:
             print(f"Error during GitHub OAuth callback: {e}")
-            raise HTTPException(status_code=400, detail="Authorization failed")
+            raise HTTPException(status_code=400, detail=f"Authorization failed: {str(e)}")
 
         # Return some details (e.g., GitHub username)
-        return {"access_token": token, "user_info": user_info}
+        return {"access_token": token['access_token'], "user_info": user_info}
 
     return oauth_router
