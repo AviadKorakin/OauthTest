@@ -45,8 +45,7 @@ def get_oauth_router():
                 raise HTTPException(status_code=400, detail="Failed to retrieve access token")
 
             # Fetch user information from GitHub API
-            response = await oauth.github.get('https://api.github.com/user', token=token)
-            user_info = await response.json()  # Extract the JSON data
+            user_info = await oauth.github.get('https://api.github.com/user', token=token)
             print(f"GitHub User Info: {user_info}")
 
         except Exception as e:
