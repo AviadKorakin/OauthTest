@@ -27,6 +27,7 @@ def get_oauth_router():
         return await oauth.github.authorize_redirect(request, redirect_uri)
 
     @oauth_router.get("/auth")
+    @oauth_router.get("/auth")
     async def auth(request: Request):
         # Log the request's query parameters to check the code and state
         code = request.query_params.get('code')
@@ -46,10 +47,8 @@ def get_oauth_router():
 
             # Fetch user information from GitHub API
             response = await oauth.github.get('https://api.github.com/user', token=token)
-            print(f"Response type: {type(response)}")
-            user_info = response  # No need to await as the response is already a dict
+            user_info = response.json()  # Extract JSON data from the httpx.Response object
             print(f"GitHub User Info: {user_info}")
-
 
         except Exception as e:
             print(f"Error during GitHub OAuth callback: {e}")
