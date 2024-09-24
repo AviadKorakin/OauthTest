@@ -27,7 +27,6 @@ def get_oauth_router():
         return await oauth.github.authorize_redirect(request, redirect_uri)
 
     @oauth_router.get("/auth")
-    @oauth_router.get("/auth")
     async def auth(request: Request):
         # Log the request's query parameters to check the code and state
         code = request.query_params.get('code')
